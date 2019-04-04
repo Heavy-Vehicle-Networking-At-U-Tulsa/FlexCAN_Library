@@ -12,22 +12,35 @@
 #include "error.h" //from Linux SocketCAN
 #include "EEPROM.h" // to read previous bitrate index from EEPROM
 
-
+/* Register read/write macros */
 #define FLEXCANb_MCR(b)                   (*(vuint32_t*)(b))
 #define FLEXCANb_CTRL1(b)                 (*(vuint32_t*)(b+4))
+#define FLEXCANb_TIMER(b)                 (*(vuint32_t*)(b+8))
+#define FLEXCANb_TCR(b)                   (*(vuint32_t*)(b+0x0C))
 #define FLEXCANb_RXMGMASK(b)              (*(vuint32_t*)(b+0x10))
+#define FLEXCANb_RX14MASK(b)              (*(vuint32_t*)(b+0x14))
+#define FLEXCANb_RX15MASK(b)              (*(vuint32_t*)(b+0x18))
 #define FLEXCANb_ECR(b)                   (*(vuint32_t*)(b+0x1C))
-#define FLEXCANb_IFLAG1(b)                (*(vuint32_t*)(b+0x30))
+#define FLEXCANb_ESR1(b)                  (*(vuint32_t*)(b+0x20)) 
+#define FLEXCANb_IMASK2(b)                (*(vuint32_t*)(b+0x24))
 #define FLEXCANb_IMASK1(b)                (*(vuint32_t*)(b+0x28))
-
+#define FLEXCANb_IFLAG2(b)                (*(vuint32_t*)(b+0x2C))
+#define FLEXCANb_IFLAG1(b)                (*(vuint32_t*)(b+0x30))
+#define FLEXCANb_CTRL2(b)                 (*(vuint32_t*)(b+0x34))
+#define FLEXCANb_ESR2(b)                  (*(vuint32_t*)(b+0x38))
+#define FLEXCANb_FUREQ(b)                 (*(vuint32_t*)(b+0x3C))
+#define FLEXCANb_FUACK(b)                 (*(vuint32_t*)(b+0x40))
+#define FLEXCANb_CRCR(b)                  (*(vuint32_t*)(b+0x44))
 #define FLEXCANb_RXFGMASK(b)              (*(vuint32_t*)(b+0x48))
+#define FLEXCANb_RXFIR(b)                 (*(vuint32_t*)(b+0x4C))
+#define FLEXCANb_DBG1(b)                  (*(vuint32_t*)(b+0x58))
+#define FLEXCANb_DBG2(b)                  (*(vuint32_t*)(b+0x5C))
 #define FLEXCANb_MBn_CS(b, n)             (*(vuint32_t*)(b+0x80+n*0x10))
 #define FLEXCANb_MBn_ID(b, n)             (*(vuint32_t*)(b+0x84+n*0x10))
 #define FLEXCANb_MBn_WORD0(b, n)          (*(vuint32_t*)(b+0x88+n*0x10))
 #define FLEXCANb_MBn_WORD1(b, n)          (*(vuint32_t*)(b+0x8C+n*0x10))
 #define FLEXCANb_IDFLT_TAB(b, n)          (*(vuint32_t*)(b+0xE0+(n*4)))
 #define FLEXCANb_MB_MASK(b, n)            (*(vuint32_t*)(b+0x880+(n*4)))
-#define FLEXCANb_ESR1(b)                  (*(vuint32_t*)(b+0x20)) 
 
 #if defined(__MK66FX1M0__)
   #define INCLUDE_FLEXCAN_CAN1
@@ -290,6 +303,9 @@ void FlexCAN::begin (uint32_t baud, const CAN_filter_t &mask, uint8_t txAlt, uin
         NVIC_ENABLE_IRQ (IRQ_CAN1_BUS_OFF);
     }
 #endif
+    // need to modify CTRL2 to allow extended frames, even if global mailbox filter is unused
+    FLEXCANb_CTRL2(flexcanBase) |= (BIT16);
+
     // enable per-mailbox filtering
     FLEXCANb_MCR(flexcanBase) |= FLEXCAN_MCR_IRMQ;
 
