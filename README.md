@@ -59,7 +59,7 @@ Disable the CAN from participating on the CANbus.  However, pins remain assigned
 **write(message)**
 Send a frame of up to 8 bytes using the given identifier.  **write()** will return 0 if no buffer was available for sending.
 
-message is a **CAN_message_t** type buffer structure.
+**message** is a **CAN_message_t** type buffer structure.
 
 **read(message)**
 Receive a frame into "message" if available.  **read()** will return 1 if a frame was copied into the callers buffer, or 0 if no frame is available.
